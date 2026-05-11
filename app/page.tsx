@@ -25,12 +25,19 @@ export default function Home() {
     });
   }, []);
 
-  const handleAddTodo = async (e: React.FormEvent) => {
+  const handleAddTodo = (e: React.FormEvent) => {
     e.preventDefault();
     if (!inputValue.trim()) return;
 
-    const newTodo = await todoService.addTodo(inputValue);
-    setTodos([newTodo, ...todos]);
+    const newTodo: Todo = {
+      id: crypto.randomUUID(),
+      text: inputValue,
+      completed: false,
+      createdAt: Date.now(),
+      prerequisites: [],
+    };
+
+    setSelectedTodo(newTodo);
     setInputValue("");
   };
 
@@ -75,6 +82,8 @@ export default function Home() {
 
   const handleDelete = async (id: string) => {
     const todoToDelete = todos.find(t => t.id === id);
+    if (!todoToDelete) return;
+
     const dependentTodos = todos.filter(t => t.prerequisites?.includes(id));
 
     if (dependentTodos.length > 0) {
@@ -90,6 +99,8 @@ export default function Home() {
 
   const handleUpdateDetail = async (id: string, updates: Partial<Todo>) => {
     if (!selectedTodo) return;
+
+    const isNew = !todos.some(t => t.id === id);
 
     // 선행 작업 업데이트 시 순환 참조 방지 체크 (안전 장치)
     if (updates.prerequisites && updates.prerequisites.length > (selectedTodo.prerequisites?.length || 0)) {
@@ -111,18 +122,46 @@ export default function Home() {
       }
     }
 
-    const updated = await todoService.updateTodo(id, updates);
-    setTodos(updated);
-    if (selectedTodo?.id === id) {
-      setSelectedTodo({ ...selectedTodo, ...updates });
+    if (isNew) {
+      // 선행 작업이 새로 추가되었을 수 있으므로 목록 동기화
+      const latestTodos = await todoService.getTodos();
+      setTodos(latestTodos);
+      
+      if (selectedTodo?.id === id) {
+        setSelectedTodo({ ...selectedTodo, ...updates });
+      }
+    } else {
+      const updated = await todoService.updateTodo(id, updates);
+      setTodos(updated);
+      if (selectedTodo?.id === id) {
+        setSelectedTodo({ ...selectedTodo, ...updates });
+      }
     }
   };
-  const handleSaveDetail = () => setSelectedTodo(null);
+
+  const handleSaveDetail = async () => {
+    if (selectedTodo) {
+      const isNew = !todos.some(t => t.id === selectedTodo.id);
+      if (isNew) {
+        const newTodos = [selectedTodo, ...todos];
+        await todoService.saveAll(newTodos);
+        setTodos(newTodos);
+      }
+    }
+    setSelectedTodo(null);
+  };
 
   const filteredTodos = todos.filter((todo) => {
-    if (filter === "active") return !todo.completed;
-    if (filter === "completed") return todo.completed;
-    return true;
+    // 1. 상태 필터링
+    const matchesFilter = 
+      filter === "all" || 
+      (filter === "active" && !todo.completed) || 
+      (filter === "completed" && todo.completed);
+
+    // 2. 검색어 필터링 (입력창에 텍스트가 있을 경우)
+    const matchesSearch = todo.text.toLowerCase().includes(inputValue.toLowerCase());
+
+    return matchesFilter && matchesSearch;
   });
   
   if (!isLoaded) return <div className="min-h-screen bg-slate-50" />;

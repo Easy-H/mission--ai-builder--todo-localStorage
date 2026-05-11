@@ -41,9 +41,11 @@ export default function TodoDetail({
     return false;
   };
 
+  const searchLower = preReqSearch.trim().toLowerCase();
+
   const availablePrereqs = todos.filter(t => 
     t.id !== selectedTodo.id && 
-    t.text.toLowerCase().includes(preReqSearch.toLowerCase()) &&
+    t.text.toLowerCase().includes(searchLower) &&
     !(selectedTodo.prerequisites || []).includes(t.id) &&
     !isCircular(t.id)
   );
@@ -63,7 +65,7 @@ export default function TodoDetail({
                   <div key={p.id} className={`px-2 py-1 rounded text-xs border ${
                     p.completed 
                       ? "bg-green-50 border-green-200 text-green-700" 
-                      : "bg-white border-zinc-200 text-zinc-600"
+                      : "bg-white border-zinc-300 text-zinc-800 font-medium"
                   }`}>
                     {p.text}
                   </div>
@@ -83,7 +85,7 @@ export default function TodoDetail({
           type="text"
           value={selectedTodo.text}
           onChange={(e) => onUpdateDetail(selectedTodo.id, { text: e.target.value })}
-          className="w-full bg-transparent border-b border-zinc-200 py-1 text-black focus:outline-none focus:border-black"
+          className="w-full bg-zinc-50 border border-zinc-200 rounded-lg px-3 py-2 text-black focus:outline-none focus:border-black text-sm"
         />
       </div>
       
@@ -93,21 +95,22 @@ export default function TodoDetail({
           type="date"
           value={selectedTodo.dueDate || ""}
           onChange={(e) => onUpdateDetail(selectedTodo.id, { dueDate: e.target.value })}
-          className="w-full bg-transparent border-b border-zinc-200 py-1 text-black focus:outline-none focus:border-black"
+          className="w-full bg-zinc-50 border border-zinc-200 rounded-lg px-3 py-2 text-black focus:outline-none focus:border-black text-sm"
         />
       </div>
 
       <div className="flex flex-col gap-2">
-        <label className="text-xs font-semibold text-zinc-500 uppercase">선행 작업</label><div className="relative">
+        <label className="text-xs font-semibold text-zinc-500 uppercase">선행 작업</label>
+        <div className="relative">
           <input
             type="text"
             placeholder="선행 작업 검색 또는 추가..."
             value={preReqSearch}
             onChange={(e) => onPreReqSearchChange(e.target.value)}
-            className="w-full bg-transparent border-b border-zinc-200 py-1 text-black focus:outline-none focus:border-black text-sm"
+            className="w-full bg-zinc-100 border border-zinc-300 rounded-lg px-4 py-2.5 text-black font-semibold focus:outline-none focus:ring-2 focus:ring-zinc-200 focus:border-zinc-500 text-sm transition-all placeholder:text-zinc-500"
           />
           {preReqSearch && (
-            <div className="absolute left-0 right-0 mt-1 max-h-32 overflow-y-auto bg-white border border-zinc-200 rounded-md shadow-lg z-10">
+            <div className="absolute left-0 right-0 mt-2 max-h-48 overflow-y-auto bg-white border border-zinc-300 rounded-xl shadow-2xl z-20">
               {availablePrereqs.map(todo => (
                 <button
                   key={todo.id}
@@ -115,7 +118,7 @@ export default function TodoDetail({
                     onUpdateDetail(selectedTodo.id, { prerequisites: [...(selectedTodo.prerequisites || []), todo.id] });
                     onPreReqSearchChange("");
                   }}
-                  className="w-full text-left px-3 py-2 text-xs hover:bg-zinc-50 text-black"
+                  className="w-full text-left px-4 py-3 text-sm hover:bg-zinc-50 text-black border-b border-zinc-100 last:border-0 transition-colors"
                 >
                   {todo.text}
                 </button>
@@ -128,7 +131,7 @@ export default function TodoDetail({
                   });
                   onPreReqSearchChange("");
                 }}
-                className="w-full text-left px-3 py-2 text-xs font-semibold text-blue-500 hover:bg-blue-50"
+                className="w-full text-left px-4 py-3 text-sm font-semibold text-blue-600 hover:bg-blue-50 transition-colors"
               >
                 + "{preReqSearch}" 새로 추가
               </button>
@@ -140,13 +143,13 @@ export default function TodoDetail({
             const prereqTodo = todos.find(t => t.id === pId);
             if (!prereqTodo) return null;
             return (
-              <span key={pId} className="px-2 py-1 bg-zinc-100 text-xs rounded-md flex items-center gap-1">
+              <span key={pId} className="px-2 py-1 bg-zinc-200 text-black text-xs font-bold rounded-md flex items-center gap-1 border border-zinc-300">
                 {prereqTodo.text}
                 <button 
                   onClick={() => onUpdateDetail(selectedTodo.id, { 
                     prerequisites: selectedTodo.prerequisites?.filter(id => id !== pId) 
                   })}
-                  className="text-zinc-400 hover:text-red-500"
+                  className="text-zinc-600 hover:text-red-600 transition-colors font-bold ml-1"
                 >
                   ×
                 </button>

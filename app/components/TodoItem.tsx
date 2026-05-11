@@ -35,7 +35,7 @@ export default function TodoItem({ todo, allTodos, onToggle, onDelete, onClick }
           {prereqTodos.length > 0 && (
             <div className="flex flex-wrap gap-1">
               {prereqTodos.map(p => (
-                <span key={p.id} className={`text-[9px] px-1.5 py-0.5 rounded border ${p.completed ? 'bg-green-50 border-green-100 text-green-600' : 'bg-zinc-100 border-zinc-200 text-zinc-500'}`}>
+                <span key={p.id} className={`text-[9px] px-1.5 py-0.5 rounded border font-semibold ${p.completed ? 'bg-green-50 border-green-100 text-green-700' : 'bg-zinc-200 border-zinc-300 text-zinc-800'}`}>
                   {isBlockedByOthers && !p.completed && "🔒 "}{p.text}
                 </span>
               ))}
