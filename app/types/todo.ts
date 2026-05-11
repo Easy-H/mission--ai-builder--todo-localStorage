@@ -3,6 +3,8 @@ export interface Todo {
   text: string;
   completed: boolean;
   createdAt: number;
+  dueDate?: string;
+  prerequisites?: string[];
 }
 
 export type FilterType = 'all' | 'active' | 'completed';

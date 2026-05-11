@@ -38,7 +38,26 @@ export const todoService = {
   // 할 일 삭제
   deleteTodo: async (id: string): Promise<Todo[]> => {
     const todos = await todoService.getTodos();
-    const updated = todos.filter(todo => todo.id !== id);
+    // 삭제된 할 일을 제외하고, 다른 할 일들의 선행 작업 목록에서도 해당 ID를 제거하여 데이터 무결성 유지
+    const updated = todos
+      .filter(todo => todo.id !== id)
+      .map(todo => {
+        if (!todo.prerequisites?.includes(id)) return todo;
+        return {
+          ...todo,
+          prerequisites: todo.prerequisites.filter(pId => pId !== id)
+        };
+      });
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+    return updated;
+  },
+
+  // 할 일 수정 (상세 정보 등)
+  updateTodo: async (id: string, updates: Partial<Todo>): Promise<Todo[]> => {
+    const todos = await todoService.getTodos();
+    const updated = todos.map(todo => 
+      todo.id === id ? { ...todo, ...updates } : todo
+    );
     localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
     return updated;
   },
